@@ -29,16 +29,19 @@ df$gen <- fct_inorder(df$gen)
 # Set bandwidth
 bw = 0.12
 
+# Define function to estimate kernel regression
+kreg <- function(x) {
+    npreg(as.vector(x$outcome) ~ x$r_w,
+                  ckertype = 'epanechnikov',
+                  bws = bw,
+                  regtype = 'll')
+}
+
 # Estimate separate kernel regressions for each subplot
 df <- df %>%
   nest(-gen) %>%
-  mutate(fit = map(
-    data, ~ npreg(.$outcome ~ .$r_w,
-                  ckertype = 'epanechnikov',
-                  bws = bw,
-                  regtype = 'll'))) %>%
-  mutate(predicted = map(
-    fit, ~ predict(.))) %>%
+  mutate(fit = map(data, kreg),
+    predicted = map(fit, predict)) %>%
   unnest(data, predicted)
 
 # Figure 1
@@ -93,18 +96,11 @@ bw = 0.12
 
 
 # Estimate separate kernel regressions for each subplot
-df_np <-
-  df_all %>%
+df_np <- df_all %>%
   nest(-gen, -cat) %>%
-  mutate(fit = map(
-    data, ~ npreg(.$outcome ~ .$r_w,
-                  ckertype = 'epanechnikov',
-                  bws = bw,
-                  regtype = 'll'))) %>%
-  mutate(predicted = map(
-    fit, ~ predict(.))) %>%
+  mutate(fit = map(data, kreg),
+    predicted = map(fit, predict)) %>%
   unnest(data, predicted)
-
 
 # Online Appendix Figure 1
 plot_sens <-
