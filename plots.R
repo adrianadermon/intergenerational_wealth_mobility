@@ -23,9 +23,6 @@ df <- df %>% arrange(gen)
 
 df$gen <- fct_inorder(df$gen)
 
-
-#df$outcome <- c(df$outcome)
-
 # Set bandwidth
 bw = 0.12
 
